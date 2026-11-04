@@ -411,3 +411,5 @@ Run through these checks manually to verify everything works correctly.
   ✅ Expected: Toast warning "Please enter a question before searching."  
   Search the text: *"error-test"*  
   ✅ Expected: Error message appears with a **Retry** button. Clicking Retry runs the search again.
+#   R A G - B a s e d - I n t e l l i g e n t - D o c u m e n t - R e t r i e v a l - S y s t e m .  
+ 
