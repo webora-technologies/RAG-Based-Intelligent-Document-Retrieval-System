@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — RAG Document Retrieval System</title>
+  <meta name="description"
+    content="Manage uploaded study documents, monitor indexing status, and search documents as an administrator." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <div class="page-wrap">
+
+    <!-- Navbar -->
+    <nav class="navbar" aria-label="Main navigation">
+      <a class="navbar__brand" href="admin.html">
+        <div class="navbar__logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="2.5"/><path d="M13 16l2 2"/></svg></div>
+        <div>
+          <div class="navbar__title">DocRetrieval</div>
+          <div class="navbar__subtitle">Computer Engineering Dept.</div>
+        </div>
+      </a>
+
+      <div class="navbar__nav" role="navigation">
+        <a href="admin.html" class="navbar__link" aria-current="page" id="nav-docs">Documents</a>
+        <a href="search.html" class="navbar__link" id="nav-search">Search</a>
+        
+
+        <div class="navbar__user">
+          <span class="badge badge--info" aria-label="Your role">Admin</span>
+          <span class="navbar__user-name" id="user-name" aria-label="Logged in as"></span>
+          <button class="btn btn--ghost btn--sm" id="btn-logout"
+            style="color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.25);">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Document Management</h1>
+          <p class="page-subtitle">Upload, review and manage indexed study materials.</p>
+        </div>
+        <button class="btn btn--primary" id="btn-open-upload" type="button" aria-haspopup="dialog"
+          aria-controls="modal-upload">
+          &#43; Upload Document
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-cards" role="region" aria-label="Summary statistics">
+        <div class="stat-card stat-card--total">
+          <div class="stat-card__label">Total Documents</div>
+          <div class="stat-card__value" id="stat-total" aria-live="polite">—</div>
+          <div class="stat-card__sub">in the library</div>
+        </div>
+        <div class="stat-card stat-card--indexed">
+          <div class="stat-card__label">Indexed</div>
+          <div class="stat-card__value" id="stat-indexed" aria-live="polite">—</div>
+          <div class="stat-card__sub">searchable</div>
+        </div>
+        <div class="stat-card stat-card--proc">
+          <div class="stat-card__label">Processing</div>
+          <div class="stat-card__value" id="stat-processing" aria-live="polite">—</div>
+          <div class="stat-card__sub">pending &amp; in progress</div>
+        </div>
+        <div class="stat-card stat-card--failed">
+          <div class="stat-card__label">Failed</div>
+          <div class="stat-card__value" id="stat-failed" aria-live="polite">—</div>
+          <div class="stat-card__sub">need attention</div>
+        </div>
+      </div>
+
+      
+
+<section class="overview" aria-label="Library overview">
+        <div class="overview__card"><h3>Index status</h3>
+          <div class="ov-donut-wrap"><div class="donut" id="ov-donut"><div class="donut__hole"><strong id="ov-total">0</strong><span>documents</span></div></div>
+          <ul class="legend" id="ov-legend"></ul></div></div>
+        <div class="overview__card"><h3>Documents by subject</h3><div id="ov-bars" class="bars"></div></div>
+        <div class="overview__card"><h3>Recently uploaded</h3><ul id="ov-recent" class="recent"></ul></div>
+      </section>
+      <!-- Filter bar + Table -->
+      <div class="card" role="region" aria-label="Document list">
+
+        <!-- Filters -->
+        <div class="filter-bar" role="search" aria-label="Filter documents">
+          <input class="form-input filter-search" type="search" id="tbl-search"
+            placeholder="&#128269; Search by title or file…" aria-label="Search documents by title or file name" />
+          <select class="form-select" id="tbl-year" aria-label="Filter by year">
+            <option value="">All Years</option>
+          </select>
+          <select class="form-select" id="tbl-sem" aria-label="Filter by semester">
+            <option value="">All Sems</option>
+          </select>
+          <select class="form-select" id="tbl-subject" aria-label="Filter by subject">
+            <option value="">All Subjects</option>
+          </select>
+          <select class="form-select" id="tbl-status" aria-label="Filter by status">
+            <option value="">All Status</option>
+            <option value="Indexed">Indexed</option>
+            <option value="Processing">Processing</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap" role="region" aria-label="Documents table" tabindex="0">
+          <table class="data-table" aria-label="Uploaded documents">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">File Name</th>
+                <th scope="col">Year</th>
+                <th scope="col">Sem</th>
+                <th scope="col">Subject</th>
+                <th scope="col">Size</th>
+                <th scope="col">Uploaded</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="docs-tbody">
+              <tr>
+                <td colspan="9" class="tbl-loading">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state (shown when filtered list is empty) -->
+        <div id="tbl-empty" class="empty-state" hidden role="status" aria-live="polite">
+          <div class="empty-state__icon" aria-hidden="true">📂</div>
+          <p class="empty-state__title">No documents found</p>
+          <p class="empty-state__body">Try adjusting your search or filters, or upload a new document.</p>
+        </div>
+
+        <!-- Screen-reader-only status for table updates -->
+        <p id="tbl-status-live" class="sr-only" role="status" aria-live="polite"></p>
+
+      </div><!-- /.card -->
+
+    </main>
+
+  </div><!-- /.page-wrap -->
+
+  <!-- ══════════════════════════════════════
+     UPLOAD MODAL
+══════════════════════════════════════ -->
+  <div id="modal-upload" class="modal modal--lg" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title"
+    hidden>
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <h2 class="modal__title" id="upload-modal-title">Upload Study Document</h2>
+        <button class="modal__close" id="btn-cancel-upload" aria-label="Close upload dialog"
+          type="button">&#215;</button>
+      </div>
+      <div class="modal__body">
+
+        <!-- Error alert -->
+        <div id="upload-error" class="alert alert--error" hidden role="alert">
+          <span class="alert__icon" aria-hidden="true">&#9888;</span>
+          <span class="alert__msg"></span>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="drop-zone" tabindex="0" role="button"
+          aria-label="Drop a PDF file here or click to browse">
+          <div class="drop-zone__icon" aria-hidden="true">&#128196;</div>
+          <p class="drop-zone__title">Drag &amp; drop your PDF here</p>
+          <p class="drop-zone__sub">or click to browse — PDF only, max 20 MB</p>
+          <input type="file" id="up-file-input" accept=".pdf,application/pdf" style="display:none;" aria-hidden="true"
+            tabindex="-1" />
+        </div>
+        <p class="file-info" id="up-file-info" aria-live="polite" aria-atomic="true"></p>
+
+        <form id="upload-form" novalidate>
+          <div class="form-row form-row--2" style="gap:var(--sp-4);">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label" for="up-title">
+                Document Title <span class="required" aria-hidden="true">*</span>
+              </label>
+              <input class="form-input" type="text" id="up-title" placeholder="e.g. Operating Systems — Unit 3 Notes"
+                required aria-required="true" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="up-year">
+                Academic Year <span class="required" aria-hidden="true">*</span>
+              </label>
+              <select class="form-select" id="up-year" required aria-required="true">
+                <option value="">Select year…</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="up-sem">
+                Semester <span class="required" aria-hidden="true">*</span>
+              </label>
+              <select class="form-select" id="up-sem" required aria-required="true">
+                <option value="">Select semester…</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label" for="up-subject">
+                Subject <span class="required" aria-hidden="true">*</span>
+              </label>
+              <select class="form-select" id="up-subject" required aria-required="true">
+                <option value="">Select subject…</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div id="upload-progress" hidden>
+            <p style="font-size:0.82rem;color:var(--clr-gray-500);margin-bottom:var(--sp-1);">Uploading…</p>
+            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+              aria-label="Upload progress">
+              <div class="progress-bar__fill" id="upload-progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div class="modal__footer" style="border-radius:0;padding:0;border:none;background:none;">
+            <button type="button" class="btn btn--secondary" id="btn-cancel-upload-footer">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn--primary" id="btn-submit-upload">
+              Upload Document
+            </button>
+          </div>
+        </form>
+
+      </div><!-- /.modal__body -->
+    </div><!-- /.modal__dialog -->
+  </div><!-- /#modal-upload -->
+
+  <!-- ══════════════════════════════════════
+     EDIT METADATA MODAL
+══════════════════════════════════════ -->
+  <div id="modal-edit" class="modal modal--md" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title"
+    hidden>
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <h2 class="modal__title" id="edit-modal-title">Edit Document Metadata</h2>
+        <button class="modal__close" id="btn-cancel-edit" type="button" aria-label="Close edit dialog">&#215;</button>
+      </div>
+      <div class="modal__body">
+
+        <div id="edit-error" class="alert alert--error" hidden role="alert">
+          <span class="alert__icon" aria-hidden="true">&#9888;</span>
+          <span class="alert__msg"></span>
+        </div>
+
+        <form id="edit-form" novalidate>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-4);">
+            <div class="form-group">
+              <label class="form-label" for="edit-title">
+                Title <span class="required" aria-hidden="true">*</span>
+              </label>
+              <input class="form-input" type="text" id="edit-title" required aria-required="true" />
+            </div>
+
+            <div class="form-row form-row--2">
+              <div class="form-group">
+                <label class="form-label" for="edit-year">
+                  Year <span class="required" aria-hidden="true">*</span>
+                </label>
+                <select class="form-select" id="edit-year" required aria-required="true"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="edit-sem">
+                  Semester <span class="required" aria-hidden="true">*</span>
+                </label>
+                <select class="form-select" id="edit-sem" required aria-required="true"></select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="edit-subject">
+                Subject <span class="required" aria-hidden="true">*</span>
+              </label>
+              <select class="form-select" id="edit-subject" required aria-required="true"></select>
+            </div>
+          </div>
+        </form>
+
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" id="btn-cancel-edit-footer">
+          Cancel
+        </button>
+        <button type="submit" form="edit-form" class="btn btn--primary" id="btn-submit-edit">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+     DELETE CONFIRMATION MODAL
+══════════════════════════════════════ -->
+  <div id="modal-delete" class="modal modal--sm" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title"
+    hidden>
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <h2 class="modal__title" id="delete-modal-title">Delete Document</h2>
+        <button class="modal__close" id="btn-cancel-delete" type="button"
+          aria-label="Close delete dialog">&#215;</button>
+      </div>
+      <div class="modal__body">
+        <div class="alert alert--error" style="border-color:var(--clr-danger);">
+          <span class="alert__icon" aria-hidden="true">&#9888;</span>
+          <div>
+            <strong>This action cannot be undone.</strong><br />
+            <span>This removes the document and its searchable content from the system.</span>
+          </div>
+        </div>
+        <p style="font-size:0.9rem;color:var(--clr-gray-700);">
+          You are about to permanently delete:<br />
+          <strong id="delete-doc-name" style="color:var(--clr-gray-900);"></strong>
+        </p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" id="btn-cancel-delete-footer">
+          Cancel
+        </button>
+        <button type="button" class="btn btn--danger" id="btn-confirm-delete">
+          Delete Permanently
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+
+</html>

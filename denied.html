@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access Denied — RAG Document Retrieval System</title>
+  <meta name="description" content="You do not have permission to access this page." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="page-wrap">
+  <main class="denied-page" id="main-content">
+    <div class="denied-card">
+      <div class="denied-icon" aria-hidden="true">🔒</div>
+      <h1 class="denied-title">Access Denied</h1>
+      <p class="denied-body">
+        You do not have permission to view this page.<br />
+        This area is restricted to <strong>Administrators</strong> only.<br />
+        If you believe this is an error, please contact your department administrator.
+      </p>
+      <div class="denied-actions">
+        <a href="search.html" class="btn btn--primary">Go to Search</a>
+        <a href="index.html" id="btn-logout-denied" class="btn btn--secondary">Sign Out</a>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script type="module">
+  import { Auth } from "./js/auth.js";
+  /* Clear session on "Sign Out" click */
+  document.getElementById("btn-logout-denied").addEventListener("click", (e) => {
+    e.preventDefault();
+    Auth.logout();
+  });
+</script>
+
+</body>
+</html>

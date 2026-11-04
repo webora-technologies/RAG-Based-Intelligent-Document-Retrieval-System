@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search — RAG Document Retrieval System</title>
+  <meta name="description"
+    content="Ask natural-language questions about your study materials and get answers grounded in uploaded documents." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <div class="page-wrap">
+
+    <!-- Navbar -->
+    <nav class="navbar" aria-label="Main navigation">
+      <a class="navbar__brand" href="search.html">
+        <div class="navbar__logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="2.5"/><path d="M13 16l2 2"/></svg></div>
+        <div>
+          <div class="navbar__title">DocRetrieval</div>
+          <div class="navbar__subtitle">Computer Engineering Dept.</div>
+        </div>
+      </a>
+
+      <div class="navbar__nav" role="navigation">
+        <a href="admin.html" class="navbar__link" id="nav-documents" hidden>Documents</a>
+        <a href="search.html" class="navbar__link" aria-current="page">Search</a>
+        
+
+        <div class="navbar__user">
+          <span class="badge badge--navy" id="role-badge" aria-label="Your role">Student</span>
+          <span class="navbar__user-name" id="user-name" aria-label="Logged in as"></span>
+          <button class="btn btn--ghost btn--sm" id="btn-logout"
+            style="color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.25);">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main-content">
+
+      <!-- Hero search bar -->
+      <section class="search-hero" aria-label="Search">
+        <div class="search-hero__eyebrow"><span aria-hidden="true">✦</span> YOUR COURSE LIBRARY, ONE QUESTION AWAY</div>
+        <h1 class="search-hero__title">Study smarter.<br />Find answers faster.</h1>
+        <p class="search-hero__sub">
+          Ask naturally. Get clear answers grounded in your course material, with page-level citations.
+        </p>
+        <div class="search-box-wrap">
+          <div class="search-box">
+            <label for="search-query" class="sr-only">Enter your question</label>
+            <input class="search-box__input" type="text" id="search-query"
+              placeholder="e.g. What is the difference between TCP and UDP?" maxlength="500" autocomplete="off"
+              spellcheck="false" autocapitalize="sentences" aria-label="Enter your question (max 500 characters)" />
+            <button class="search-box__clear" id="btn-clear-query" type="button" aria-label="Clear question"
+              title="Clear question" hidden>&times;</button>
+            <button class="search-box__btn" id="btn-search" type="button" aria-label="Search documents">
+              <span aria-hidden="true">&#128269;</span> Ask
+            </button>
+          </div>
+          <div class="search-box__meta">
+            <span class="search-box__hint">Tip: ask a focused question <span
+                class="search-shortcut"><kbd>Ctrl</kbd><kbd>K</kbd></span></span>
+            <span class="char-count" id="char-count" aria-live="polite" aria-atomic="true">0 / 500</span>
+          </div>
+        </div>
+        <div class="search-hero__trust"><span aria-hidden="true">✓</span> Answers grounded in uploaded documents, with
+          page-level evidence</div>
+      </section>
+
+      <section class="pipeline-section" aria-label="How retrieval works">
+        <div class="pipeline-heading">
+          <div>
+            <p class="section-eyebrow">BUILT FOR TRACEABLE ANSWERS</p>
+            <h2 class="suggestions-title">From question to evidence</h2>
+          </div>
+          
+        </div>
+        <ol class="pipeline-steps">
+          <li class="pipeline-step">
+            <span class="pipeline-step__number">01</span>
+            <span class="pipeline-step__icon pipeline-step__icon--blue" aria-hidden="true">⌕</span>
+            <span class="pipeline-step__copy">
+              <strong>Ask naturally</strong>
+              <span>Write a question in your own words.</span>
+            </span>
+          </li>
+          <li class="pipeline-step">
+            <span class="pipeline-step__number">02</span>
+            <span class="pipeline-step__icon pipeline-step__icon--violet" aria-hidden="true">◈</span>
+            <span class="pipeline-step__copy">
+              <strong>Retrieve evidence</strong>
+              <span>Find relevant passages in course documents.</span>
+            </span>
+          </li>
+          <li class="pipeline-step">
+            <span class="pipeline-step__number">03</span>
+            <span class="pipeline-step__icon pipeline-step__icon--green" aria-hidden="true">↗</span>
+            <span class="pipeline-step__copy">
+              <strong>Verify the answer</strong>
+              <span>Follow citations back to the source page.</span>
+            </span>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Filters -->
+      <div class="search-filters" role="search" aria-label="Filter results">
+        <span class="filters-label" aria-hidden="true">Filter by</span>
+
+        <div class="filter-group">
+          <label for="filter-year" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Year</label>
+          <select class="form-select" id="filter-year" aria-label="Filter by academic year">
+            <option value="">All Years</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-sem" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Semester</label>
+          <select class="form-select" id="filter-sem" aria-label="Filter by semester">
+            <option value="">All Semesters</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-subject" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Subject</label>
+          <select class="form-select" id="filter-subject" aria-label="Filter by subject">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-clear-filters" style="color:var(--clr-gray-500);">
+          ✕ Clear filters
+        </button>
+      </div>
+
+      <!-- Suggested questions -->
+      <section class="suggestions-section" id="suggestions-section" aria-label="Suggested questions">
+        <div class="suggestions-heading">
+          <div>
+            <p class="section-eyebrow">NOT SURE WHERE TO START?</p>
+            <h2 class="suggestions-title">Try a popular question</h2>
+          </div>
+          <span class="suggestions-note">Choose one to search instantly <span aria-hidden="true">→</span></span>
+        </div>
+        <div class="suggestion-grid">
+          <button class="suggestion-card" type="button" data-query="How are arrays different from linked lists?">
+            <span class="suggestion-card__icon suggestion-card__icon--blue" aria-hidden="true">⌘</span>
+            <span class="suggestion-card__topic">DATA STRUCTURES</span>
+            <span class="suggestion-card__question">How are arrays different from linked lists?</span>
+            <span class="suggestion-card__arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="suggestion-card" type="button" data-query="Explain database normalization and 3NF.">
+            <span class="suggestion-card__icon suggestion-card__icon--violet" aria-hidden="true">◫</span>
+            <span class="suggestion-card__topic">DATABASES</span>
+            <span class="suggestion-card__question">Explain database normalization and 3NF.</span>
+            <span class="suggestion-card__arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="suggestion-card" type="button" data-query="Compare TCP and UDP.">
+            <span class="suggestion-card__icon suggestion-card__icon--green" aria-hidden="true">⇄</span>
+            <span class="suggestion-card__topic">NETWORKS</span>
+            <span class="suggestion-card__question">Compare TCP and UDP.</span>
+            <span class="suggestion-card__arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="suggestion-card" type="button" data-query="What are the four conditions for deadlock?">
+            <span class="suggestion-card__icon suggestion-card__icon--amber" aria-hidden="true">⟳</span>
+            <span class="suggestion-card__topic">OPERATING SYSTEMS</span>
+            <span class="suggestion-card__question">What are the four conditions for deadlock?</span>
+            <span class="suggestion-card__arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Recent searches -->
+      <section class="recent-section" id="recent-section" hidden aria-label="Recent searches">
+        <p class="recent-label"><span aria-hidden="true">↺</span> Recent searches</p>
+        <div class="recent-chips" id="recent-list" role="list"></div>
+      </section>
+
+      
+
+      <!-- Results -->
+      <div class="results-container" id="results-area" aria-live="polite" aria-atomic="false">
+        <div class="result-state result-state--init" role="status">
+          <div class="result-state__icon" aria-hidden="true">✦</div>
+          <p class="result-state__title">Your study library is ready</p>
+          <p class="result-state__body">
+            Ask a question above or choose a popular question to find answers with exact document citations.
+          </p>
+        </div>
+      </div>
+
+    </main>
+
+  </div><!-- /.page-wrap -->
+
+  <script type="module" src="js/search.js"></script>
+
+</body>
+
+</html>

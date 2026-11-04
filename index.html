@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — RAG Document Retrieval System</title>
+  <meta name="description" content="Sign in to the RAG-Based Intelligent Document Retrieval System for the Computer Engineering Department." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<main class="login-page" id="main-content">
+
+  <!-- Left hero panel -->
+  <div class="login-hero" aria-hidden="true">
+    <div>
+      <div class="login-hero__logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="2.5"/><path d="M13 16l2 2"/></svg></div>
+    </div>
+    <div>
+      <div class="login-hero__tag">Computer Engineering Dept.</div>
+      <h2 class="login-hero__title">RAG-Based Intelligent Document Retrieval System</h2>
+      <p class="login-hero__body">
+        Access study materials through natural-language questions.
+        Explore a citation-first retrieval workflow built around your course documents.
+      </p>
+    </div>
+    <ul class="login-hero__features">
+      <li>Ask questions in plain English</li>
+      <li>Answers cite exact document name and page number</li>
+      <li>Covers Data Structures, OS, Networks, ML and more</li>
+      <li>Admin tools for document management and indexing</li>
+    </ul>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="login-panel">
+    <div class="login-form-wrap">
+
+      <h1>Welcome back</h1>
+      <p class="login-sub">Sign in to continue to the document portal.</p>
+
+      <!-- Error alert (hidden until needed) -->
+      <div id="login-error" class="alert alert--error" hidden role="alert" aria-live="assertive">
+        <span class="alert__icon" aria-hidden="true">✕</span>
+        <span class="alert__msg"></span>
+      </div>
+
+      <form class="login-form" id="login-form" novalidate autocomplete="on">
+
+        <div class="form-group">
+          <label class="form-label" for="login-email">
+            Email Address <span class="required" aria-hidden="true">*</span>
+          </label>
+          <input
+            class="form-input"
+            type="email"
+            id="login-email"
+            name="email"
+            placeholder="you@demo.edu"
+            autocomplete="username"
+            required
+            aria-required="true"
+            aria-describedby="login-email-err"
+          />
+          <span class="field-error" id="login-email-err" role="alert" aria-live="polite"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">
+            Password <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="pass-wrap">
+            <input
+              class="form-input"
+              type="password"
+              id="login-password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+              aria-required="true"
+              aria-describedby="login-password-err"
+            />
+            <button type="button" class="btn-toggle-pass" id="btn-toggle-password" aria-label="Show password">
+              <span class="eye-icon">👁</span>
+            </button>
+          </div>
+          <span class="field-error" id="login-password-err" role="alert" aria-live="polite"></span>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--lg btn-submit-login" id="btn-login">
+          Sign In
+        </button>
+
+      </form>
+
+      <!-- Demo credentials -->
+      <div class="demo-creds" aria-label="Demo credentials">
+        <div class="demo-creds__title">Demo Credentials</div>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Role</th>
+              <th scope="col">Email</th>
+              <th scope="col">Password</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Admin</td>
+              <td>admin@demo.edu</td>
+              <td>Admin@123</td>
+              <td>
+                <button class="demo-fill-btn" data-email="admin@demo.edu" data-pass="Admin@123" aria-label="Fill admin credentials">
+                  Use
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>Student</td>
+              <td>student@demo.edu</td>
+              <td>Student@123</td>
+              <td>
+                <button class="demo-fill-btn" data-email="student@demo.edu" data-pass="Student@123" aria-label="Fill student credentials">
+                  Use
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /.login-form-wrap -->
+  </div><!-- /.login-panel -->
+
+</main>
+
+<script type="module" src="js/login.js"></script>
+<script>
+  /* Demo fill buttons — plain script, no module needed */
+  document.querySelectorAll(".demo-fill-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.getElementById("login-email").value    = btn.dataset.email;
+      document.getElementById("login-password").value = btn.dataset.pass;
+    });
+  });
+</script>
+
+</body>
+</html>
