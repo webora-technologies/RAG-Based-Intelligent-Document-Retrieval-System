@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿# RAG-Based Intelligent Document Retrieval System
-=======
 # RAG-Based Intelligent Document Retrieval System
->>>>>>> 5c2122f0ea10cc241243ce7b352a002b2d516040
 
 ### Phase 1 — Frontend (Mock Data)
 
@@ -44,8 +40,4 @@ Webora Project1/
 │   ├── admin.js        ← Admin dashboard logic
 │   └── search.js       ← Student search logic
 │
-<<<<<<< HEAD
 └── README.md           ← This file
-=======
-└── README.md           ← This file
->>>>>>> 5c2122f0ea10cc241243ce7b352a002b2d516040
