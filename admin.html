@@ -27,6 +27,7 @@
       <div class="navbar__nav" role="navigation">
         <a href="admin.html" class="navbar__link" aria-current="page" id="nav-docs">Documents</a>
         <a href="search.html" class="navbar__link" id="nav-search">Search</a>
+        <a href="study.html" class="navbar__link">My Study Materials</a>
         
 
         <div class="navbar__user">
@@ -164,6 +165,7 @@
           type="button">&#215;</button>
       </div>
       <div class="modal__body">
+        <p class="upload-note">Demo note: in this Phase 1 demo, uploaded PDFs are listed and tracked with their details, and can be found by title and subject. Reading the full text of the PDF and answering from it is added in Phase 2.</p>
 
         <!-- Error alert -->
         <div id="upload-error" class="alert alert--error" hidden role="alert">
@@ -217,6 +219,22 @@
               <select class="form-select" id="up-subject" required aria-required="true">
                 <option value="">Select subject…</option>
               </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="up-university">University</label>
+              <select class="form-select" id="up-university"></select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="up-department">Department</label>
+              <select class="form-select" id="up-department"></select>
+            </div>
+
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label" for="up-chapters">Chapters (optional)</label>
+              <textarea class="form-textarea" id="up-chapters" rows="3" placeholder="One chapter name per line, e.g.&#10;Introduction&#10;Process Scheduling"></textarea>
+              <p class="form-help">Chapter names let students filter questions by chapter.</p>
             </div>
           </div>
 
@@ -289,6 +307,17 @@
                 Subject <span class="required" aria-hidden="true">*</span>
               </label>
               <select class="form-select" id="edit-subject" required aria-required="true"></select>
+            </div>
+
+            <div class="form-row form-row--2">
+              <div class="form-group">
+                <label class="form-label" for="edit-university">University</label>
+                <select class="form-select" id="edit-university"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="edit-department">Department</label>
+                <select class="form-select" id="edit-department"></select>
+              </div>
             </div>
           </div>
         </form>

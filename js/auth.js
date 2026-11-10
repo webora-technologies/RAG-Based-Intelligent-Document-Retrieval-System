@@ -1,4 +1,4 @@
-﻿/**
+/**
  * auth.js — Session management, role guards, and logout helper.
  * Import this on every protected page.
  */
@@ -63,7 +63,48 @@ export const Auth = {
    */
   bindLogout(id = "btn-logout") {
     const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", () => this.logout());
+    if (btn) btn.addEventListener("click", () => this.confirmLogout());
+  },
+
+  /** Ask for confirmation before signing out ("Are you sure?" with Yes / Cancel). */
+  confirmLogout() {
+    if (document.getElementById("modal-signout")) return;
+    const prevFocus = document.activeElement;
+    const modal = document.createElement("div");
+    modal.id = "modal-signout";
+    modal.className = "modal modal--sm";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "signout-title");
+    modal.innerHTML = `
+      <div class="modal__dialog">
+        <div class="modal__header">
+          <h2 class="modal__title" id="signout-title">Sign Out</h2>
+          <button type="button" class="modal__close" id="so-x" aria-label="Close">&#215;</button>
+        </div>
+        <div class="modal__body">
+          <p style="margin:0;font-size:0.95rem;">Are you sure you want to sign out?</p>
+        </div>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--secondary" id="so-cancel">Cancel</button>
+          <button type="button" class="btn btn--primary" id="so-yes">Yes, Sign Out</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.body.classList.add("body--modal-open");
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    const close = () => {
+      document.removeEventListener("keydown", onKey);
+      modal.remove();
+      document.body.classList.remove("body--modal-open");
+      if (prevFocus && prevFocus.focus) prevFocus.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+    modal.querySelector("#so-x").addEventListener("click", close);
+    modal.querySelector("#so-cancel").addEventListener("click", close);
+    modal.querySelector("#so-yes").addEventListener("click", () => this.logout());
+    modal.querySelector("#so-cancel").focus();
   },
 
   /**

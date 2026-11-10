@@ -1,4 +1,4 @@
-﻿/**
+/**
  * config.js — Central configuration for the RAG Document Retrieval System.
  */
 export const CONFIG = Object.freeze({
@@ -19,9 +19,12 @@ export const CONFIG = Object.freeze({
     USER: "rag_user",
     RECENT_SEARCHES: "rag_recent_searches",
     DOCUMENTS: "rag_documents",
+    HISTORY: "rag_history",
+    ANSWER_LENGTH: "rag_answer_length",
   },
 
   MAX_RECENT_SEARCHES: 5,
+  MAX_HISTORY: 50,
 
   YEAR_SEMESTER_MAP: {
     FE: [1, 2],
@@ -54,4 +57,12 @@ export const SUBJECTS = Object.freeze([
   "Machine Learning",
   "Theory of Computation",
   "Web Technology",
+]);
+
+/** Universities and departments offered in filters and upload forms. Edit to suit. */
+export const UNIVERSITIES = Object.freeze(["Pune University", "Mumbai University"]);
+export const DEPARTMENTS = Object.freeze([
+  "Computer Engineering",
+  "Information Technology",
+  "Electronics & Computer Engineering",
 ]);

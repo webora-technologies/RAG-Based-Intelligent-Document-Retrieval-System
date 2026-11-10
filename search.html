@@ -27,6 +27,7 @@
       <div class="navbar__nav" role="navigation">
         <a href="admin.html" class="navbar__link" id="nav-documents" hidden>Documents</a>
         <a href="search.html" class="navbar__link" aria-current="page">Search</a>
+        <a href="study.html" class="navbar__link">My Study Materials</a>
         
 
         <div class="navbar__user">
@@ -47,7 +48,7 @@
         <div class="search-hero__eyebrow"><span aria-hidden="true">✦</span> YOUR COURSE LIBRARY, ONE QUESTION AWAY</div>
         <h1 class="search-hero__title">Study smarter.<br />Find answers faster.</h1>
         <p class="search-hero__sub">
-          Ask naturally. Get clear answers grounded in your course material, with page-level citations.
+          Ask naturally. Get clear answers grounded in your course material, with chapter and page-level citations.
         </p>
         <div class="search-box-wrap">
           <div class="search-box">
@@ -110,30 +111,66 @@
       <!-- Filters -->
       <div class="search-filters" role="search" aria-label="Filter results">
         <span class="filters-label" aria-hidden="true">Filter by</span>
-
+        <div class="filter-group">
+          <label for="filter-university" class="form-label" style="font-size:0.8rem;white-space:nowrap;">University</label>
+          <select class="form-select" id="filter-university" aria-label="Filter by university">
+            <option value="">All Universities</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-department" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Department</label>
+          <select class="form-select" id="filter-department" aria-label="Filter by department">
+            <option value="">All Departments</option>
+          </select>
+        </div>
         <div class="filter-group">
           <label for="filter-year" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Year</label>
           <select class="form-select" id="filter-year" aria-label="Filter by academic year">
             <option value="">All Years</option>
           </select>
         </div>
-
         <div class="filter-group">
           <label for="filter-sem" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Semester</label>
           <select class="form-select" id="filter-sem" aria-label="Filter by semester">
             <option value="">All Semesters</option>
           </select>
         </div>
-
         <div class="filter-group">
           <label for="filter-subject" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Subject</label>
           <select class="form-select" id="filter-subject" aria-label="Filter by subject">
             <option value="">All Subjects</option>
           </select>
         </div>
+        <div class="filter-group">
+          <label for="filter-textbook" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Textbook</label>
+          <select class="form-select" id="filter-textbook" aria-label="Filter by textbook">
+            <option value="">All Textbooks</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-chapter" class="form-label" style="font-size:0.8rem;white-space:nowrap;">Chapter</label>
+          <select class="form-select" id="filter-chapter" aria-label="Filter by chapter">
+            <option value="">All Chapters</option>
+          </select>
+        </div>
 
         <button type="button" class="btn btn--ghost btn--sm" id="btn-clear-filters" style="color:var(--clr-gray-500);">
           ✕ Clear filters
+        </button>
+      </div>
+
+      <!-- Answer options -->
+      <div class="answer-options">
+        <div class="opt-group">
+          <span class="opt-label" id="length-label">Answer length</span>
+          <div class="segmented" role="radiogroup" aria-labelledby="length-label">
+            <button type="button" class="segmented__btn" role="radio" aria-checked="false" data-length="short">Short</button>
+            <button type="button" class="segmented__btn" role="radio" aria-checked="true" data-length="medium">Medium</button>
+            <button type="button" class="segmented__btn" role="radio" aria-checked="false" data-length="detailed">Detailed</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm" id="btn-history" aria-haspopup="dialog">
+          <span aria-hidden="true">🕘</span> History <span class="count-pill" id="history-count">0</span>
         </button>
       </div>
 
@@ -196,6 +233,37 @@
     </main>
 
   </div><!-- /.page-wrap -->
+
+  <!-- History drawer -->
+  <div class="drawer" id="history-drawer" hidden>
+    <div class="drawer__backdrop" id="history-backdrop"></div>
+    <aside class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="history-title">
+      <div class="drawer__header">
+        <h2 class="drawer__title" id="history-title">Question history</h2>
+        <button type="button" class="modal__close" id="btn-history-close" aria-label="Close history">&times;</button>
+      </div>
+      <div class="drawer__tools">
+        <span class="drawer__hint">Open a past question to read its answer again.</span>
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-history-clear">Clear all</button>
+      </div>
+      <ul class="history-list" id="history-list"></ul>
+    </aside>
+  </div>
+
+  <!-- Source viewer -->
+  <div class="modal modal--md" id="modal-source" hidden role="dialog" aria-modal="true" aria-labelledby="source-title">
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <h2 class="modal__title" id="source-title">Source reference</h2>
+        <button type="button" class="modal__close" id="btn-source-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body" id="source-body"></div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" id="btn-source-copy">Copy citation</button>
+        <button type="button" class="btn btn--primary" id="btn-source-done">Close</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="js/search.js"></script>
 

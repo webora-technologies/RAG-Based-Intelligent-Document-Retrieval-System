@@ -1,10 +1,11 @@
-﻿/**
+/**
  * mock-data.js — All sample data and mock API implementations for Phase 1.
  *
  * NOTE: SUBJECTS now lives in config.js so production builds don't pull in
  * demo credentials just to render a dropdown.
  */
 import { CONFIG } from "./config.js";
+import { DOC_EXTRAS, KB_EXTRA, DEFAULT_UNIVERSITY, DEFAULT_DEPARTMENT } from "./knowledge.js";
 
 /* ════════════════════════════════════════
    DEMO USERS
@@ -92,7 +93,7 @@ export const MOCK_DOCUMENTS_SEED = [
     fileName: "webtech_fullstack.pdf",
     year: "BE", semester: 8, subject: "Web Technology",
     sizeMB: 5.6, pages: 230, uploadedAt: "2026-08-10T12:00:00Z",
-    status: "Processing", errorMsg: null,
+    status: "Indexed", errorMsg: null,
   },
   {
     id: "doc-009",
@@ -110,6 +111,14 @@ export const MOCK_DOCUMENTS_SEED = [
     year: "FE", semester: 2, subject: "Data Structures",
     sizeMB: 2.1, pages: 88, uploadedAt: "2026-09-05T13:45:00Z",
     status: "Indexed", errorMsg: null,
+  },
+  {
+    id: "doc-011",
+    title: "Operating Systems — Practice Question Bank",
+    fileName: "os_question_bank.pdf",
+    year: "TE", semester: 5, subject: "Operating Systems",
+    sizeMB: 3.1, pages: 64, uploadedAt: "2026-09-08T10:20:00Z",
+    status: "Processing", errorMsg: null,
   },
 ];
 
@@ -288,28 +297,50 @@ function _delay() {
   return new Promise((r) => setTimeout(r, 800 + Math.random() * 1000));
 }
 
-/** Read documents from sessionStorage (seeded on first call). */
-function _getDocs() {
+/**
+ * Persist documents in the browser (localStorage), so documents uploaded by the
+ * admin stay available to students on the same browser and after sign-out.
+ * Silently no-ops when storage is unavailable; the demo then keeps data in memory.
+ */
+let _memDocs = null;
+function _saveDocs(docs) {
+  _memDocs = docs;
   try {
-    const raw = sessionStorage.getItem(CONFIG.SESSION_KEYS.DOCUMENTS);
-    if (raw) return JSON.parse(raw);
-  } catch (_) { }
-  const seed = JSON.parse(JSON.stringify(MOCK_DOCUMENTS_SEED));
-  _saveDocs(seed);
-  return seed;
+    localStorage.setItem(CONFIG.SESSION_KEYS.DOCUMENTS, JSON.stringify(docs));
+  } catch (_) { /* storage unavailable: in-memory only */ }
 }
 
-/**
- * Persist documents to sessionStorage.
- * Silently no-ops when storage is unavailable (private mode, quota exceeded, policy).
- * Demo continues with in-memory state only.
- */
-function _saveDocs(docs) {
-  try {
-    sessionStorage.setItem(CONFIG.SESSION_KEYS.DOCUMENTS, JSON.stringify(docs));
-  } catch (_) {
-    /* Storage unavailable — data stays in-memory only. Acceptable for the demo. */
+/** Make sure every document has the fields the newer screens need. */
+function _normalizeDoc(d) {
+  const x = DOC_EXTRAS[d.id] || {};
+  if (!d.university) d.university = x.university || DEFAULT_UNIVERSITY;
+  if (!d.department) d.department = x.department || DEFAULT_DEPARTMENT;
+  if (!Array.isArray(d.chapters)) {
+    d.chapters = (x.chapters || []).map(([no, name, from, to]) => ({ no, name, from, to }));
   }
+  return d;
+}
+
+/** Read documents (seeded on first call). */
+function _getDocs() {
+  let docs = null;
+  try {
+    const raw = localStorage.getItem(CONFIG.SESSION_KEYS.DOCUMENTS);
+    if (raw) docs = JSON.parse(raw);
+  } catch (_) { }
+  if (!docs) docs = _memDocs;
+  if (!docs) {
+    docs = JSON.parse(JSON.stringify(MOCK_DOCUMENTS_SEED));
+  }
+  docs.forEach(_normalizeDoc);
+  if (!_memDocs) _saveDocs(docs);
+  return docs;
+}
+
+/** Chapter that contains a given page of a document, or null. */
+export function chapterFor(doc, page) {
+  const c = (doc.chapters || []).find((ch) => page >= ch.from && page <= ch.to);
+  return c ? { no: c.no, name: c.name } : null;
 }
 
 /**
@@ -342,6 +373,9 @@ export async function mockListDocuments(filters = {}) {
   if (filters.semester) docs = docs.filter((d) => d.semester === Number(filters.semester));
   if (filters.subject) docs = docs.filter((d) => d.subject === filters.subject);
   if (filters.status) docs = docs.filter((d) => d.status === filters.status);
+  if (filters.university) docs = docs.filter((d) => d.university === filters.university);
+  if (filters.department) docs = docs.filter((d) => d.department === filters.department);
+  if (filters.document_id) docs = docs.filter((d) => d.id === filters.document_id);
   if (filters.search) {
     const q = filters.search.toLowerCase();
     docs = docs.filter((d) => d.title.toLowerCase().includes(q));
@@ -363,12 +397,26 @@ export async function mockUploadDocument(file, metadata, onProgress) {
     year: metadata.year,
     semester: Number(metadata.semester),
     subject: metadata.subject,
+    university: metadata.university || DEFAULT_UNIVERSITY,
+    department: metadata.department || DEFAULT_DEPARTMENT,
     sizeMB: parseFloat((file.size / (1024 * 1024)).toFixed(2)),
     pages: Math.floor(Math.random() * 150) + 30,
     uploadedAt: new Date().toISOString(),
     status: "Pending",
     errorMsg: null,
   };
+  /* Optional chapter names: spread them evenly over the pages of the document */
+  const names = (metadata.chapterNames || []).filter(Boolean);
+  if (names.length) {
+    const step = Math.max(1, Math.ceil(newDoc.pages / names.length));
+    newDoc.chapters = names.map((name, i) => ({
+      no: i + 1, name,
+      from: i * step + 1,
+      to: i === names.length - 1 ? newDoc.pages : (i + 1) * step,
+    }));
+  } else {
+    newDoc.chapters = [];
+  }
 
   const docs = _getDocs();
   docs.unshift(newDoc);
@@ -412,8 +460,89 @@ export async function mockDeleteDocument(id) {
   _saveDocs(docs);
 }
 
-export async function mockSearch({ query, year, semester, subject }) {
+/* ════════════════════════════════════════
+   SEARCH (sample data only)
+════════════════════════════════════════ */
+
+const KB = [...MOCK_QA, ...KB_EXTRA];
+const SEED_IDS = new Set(MOCK_DOCUMENTS_SEED.map((d) => d.id));
+
+const STOP = new Set(("the a an and or of to in on for with by is are was were be been what which who whom whose when where why how " +
+  "does do did can could should would will shall may might must this that these those it its as at from into about between " +
+  "explain describe define compare difference differences tell me please give example examples vs versus use used using " +
+  "your you our their there here than then also any some more most such very like just").split(" "));
+
+function _stem(w) {
+  if (w.length > 5 && w.endsWith("ies")) return w.slice(0, -3) + "y";
+  if (w.length > 6 && w.endsWith("ing")) return w.slice(0, -3);
+  if (w.length > 4 && w.endsWith("es")) return w.slice(0, -2);
+  if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) return w.slice(0, -1);
+  return w;
+}
+
+function _tokens(text) {
+  return text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/)
+    .filter((w) => w.length > 2 && !STOP.has(w)).map(_stem);
+}
+
+let _kbIndex = null;
+function _index() {
+  if (_kbIndex) return _kbIndex;
+  _kbIndex = KB.map((qa) => ({
+    qa,
+    kwTokens: new Set(qa.keywords.flatMap((k) => _tokens(k))),
+    textTokens: new Set(_tokens(qa.answer + " " + qa.sources.map((s) => s.passage).join(" "))),
+  }));
+  return _kbIndex;
+}
+
+function _score(entry, lq, qTokens) {
+  const phrase = entry.qa.keywords.filter((kw) => _kwMatches(lq, kw)).length;
+  let kwTok = 0, txt = 0;
+  qTokens.forEach((t) => {
+    if (entry.kwTokens.has(t)) kwTok++;
+    else if (entry.textTokens.has(t)) txt++;
+  });
+  return { phrase, kwTok, score: phrase * 3 + kwTok * 1.5 + txt * 0.5 };
+}
+
+/** First sentence of an answer (keeps its [n] marker). */
+function _firstSentence(text) {
+  const abbr = /(?:e\.g|i\.e|vs|etc)$/i;
+  const re = /\.(?=\s|$)/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const before = text.slice(0, m.index);
+    if (abbr.test(before)) continue;
+    const end = m.index + 1;
+    let s = text.slice(0, end);
+    if (text[end] === "[") continue;
+    return s.length > 280 ? s.slice(0, s.lastIndexOf(" ", 280)) + "…" : s;
+  }
+  return text;
+}
+
+function _variants(medium, sources) {
+  const short = _firstSentence(medium);
+  const detail = sources.map((s, i) => `${s.passage} [${i + 1}]`).join(" ");
+  return {
+    short,
+    medium,
+    detailed: `${medium}\n\nIn more detail, the source material explains: ${detail}`,
+  };
+}
+
+function _docSummary(d) {
+  return {
+    id: d.id, title: d.title, subject: d.subject, year: d.year, semester: d.semester,
+    university: d.university, department: d.department, pages: d.pages,
+    chapters: (d.chapters || []).length,
+  };
+}
+
+export async function mockSearch(params) {
   await _delay();
+  const { query, year, semester, subject, university, department, document_id, chapter } = params;
 
   /* Simulated backend error */
   if (query.toLowerCase().includes("error-test")) {
@@ -423,45 +552,72 @@ export async function mockSearch({ query, year, semester, subject }) {
   }
 
   const lq = query.toLowerCase();
+  const qTokens = [...new Set(_tokens(query))];
+  const indexed = _getDocs().filter((d) => d.status === "Indexed");
+  const byId = Object.fromEntries(indexed.map((d) => [d.id, d]));
+  const filtersActive = Boolean(year || semester || subject || university || department || document_id || chapter);
 
-  /* Find best-matching QA by keyword count (word-boundary aware) */
-  let bestQA = null;
-  let bestScore = 0;
-  for (const qa of MOCK_QA) {
-    const hits = qa.keywords.filter((kw) => _kwMatches(lq, kw)).length;
-    if (hits > bestScore) { bestScore = hits; bestQA = qa; }
-  }
+  const docPasses = (d) =>
+    (!year || d.year === year) &&
+    (!semester || d.semester === Number(semester)) &&
+    (!subject || d.subject === subject) &&
+    (!university || d.university === university) &&
+    (!department || d.department === department) &&
+    (!document_id || d.id === document_id);
 
-  if (!bestQA || bestScore === 0) return { status: "no_evidence" };
-
-  /* Build set of currently Indexed document IDs */
-  const indexedDocs = _getDocs().filter((d) => d.status === "Indexed");
-  const indexedById = Object.fromEntries(indexedDocs.map((d) => [d.id, d]));
-
-  /* Filter sources by: document must be Indexed + user-chosen filters */
-  let sources = bestQA.sources.filter((s) => indexedById[s.documentId]);
-
-  if (year) {
-    sources = sources.filter((s) => indexedById[s.documentId]?.year === year);
-  }
-  if (semester) {
-    sources = sources.filter((s) => indexedById[s.documentId]?.semester === Number(semester));
-  }
-  if (subject) {
-    sources = sources.filter((s) => indexedById[s.documentId]?.subject === subject);
-  }
-
-  if (sources.length === 0) return { status: "no_evidence" };
-
-  return {
-    status: "ok",
-    answer: bestQA.answer,
-    sources: sources.map((s) => ({
-      document_id: s.documentId,
-      document_title: s.documentTitle,
-      page: s.page,
-      passage: s.passage,
-      score: s.score,
-    })),
+  const srcPasses = (s) => {
+    const d = byId[s.documentId];
+    if (!d || !docPasses(d)) return false;
+    if (chapter) {
+      const c = chapterFor(d, s.page);
+      if (!c || c.no !== Number(chapter)) return false;
+    }
+    return true;
   };
+
+  /* Rank every sample entry against the question (phrases + word overlap) */
+  const ranked = _index()
+    .map((e) => ({ e, s: _score(e, lq, qTokens) }))
+    .filter((x) => x.s.score >= 3 && (x.s.phrase > 0 || x.s.kwTok >= 2))
+    .sort((a, b) => b.s.score - a.s.score);
+
+  for (const { e } of ranked.slice(0, 4)) {
+    const kept = e.qa.sources
+      .map((s, i) => ({ s, orig: i + 1 }))
+      .filter(({ s }) => srcPasses(s));
+    if (!kept.length) continue;
+
+    /* Renumber the [n] markers so they match the sources that remain */
+    const remap = new Map(kept.map(({ orig }, i) => [orig, i + 1]));
+    const medium = e.qa.answer
+      .replace(/\[(\d+)\]/g, (_, n) => (remap.has(Number(n)) ? `[${remap.get(Number(n))}]` : ""))
+      .replace(/\s+([.,;])/g, "$1");
+
+    const sources = kept.map(({ s }) => {
+      const d = byId[s.documentId];
+      const c = chapterFor(d, s.page);
+      return {
+        document_id: s.documentId, document_title: s.documentTitle,
+        subject: d.subject, year: d.year, semester: d.semester,
+        university: d.university, department: d.department,
+        chapter_no: c ? c.no : null, chapter_name: c ? c.name : null,
+        page: s.page, passage: s.passage, score: s.score,
+      };
+    });
+    const answers = _variants(medium, sources);
+    return { status: "ok", answer: answers.medium, answers, sources };
+  }
+
+  /* No answer in the sample material: look for newly uploaded documents by title and subject */
+  if (!ranked.length) {
+    const matches = indexed
+      .filter((d) => !SEED_IDS.has(d.id) && docPasses(d))
+      .filter((d) => {
+        const t = new Set(_tokens(d.title + " " + d.subject));
+        return qTokens.some((x) => t.has(x));
+      });
+    if (matches.length) return { status: "documents_only", documents: matches.map(_docSummary) };
+  }
+
+  return { status: "no_evidence", filtered: ranked.length > 0 && filtersActive };
 }

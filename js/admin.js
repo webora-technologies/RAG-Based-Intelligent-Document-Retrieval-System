@@ -3,7 +3,7 @@
  */
 import { listDocuments, uploadDocument, updateDocument, deleteDocument } from "./api.js";
 import { Auth } from "./auth.js";
-import { CONFIG, SUBJECTS } from "./config.js";
+import { CONFIG, SUBJECTS, UNIVERSITIES, DEPARTMENTS } from "./config.js";
 import {
   Toast, Modal, escapeHTML, escapeAttr, formatSize, formatDate,
   statusBadge, populateYearSelect, populateSemesterSelect, linkYearSemester,
@@ -185,6 +185,10 @@ uploadSemSel.insertBefore(new Option("Select semester…", ""), uploadSemSel.fir
 uploadSemSel.value = "";
 uploadSubjSel.innerHTML = '<option value="">Select subject…</option>';
 SUBJECTS.forEach((s) => { uploadSubjSel.appendChild(new Option(s, s)); });
+const uploadUniSel = document.getElementById("up-university");
+const uploadDeptSel = document.getElementById("up-department");
+UNIVERSITIES.forEach((u) => uploadUniSel.appendChild(new Option(u, u)));
+DEPARTMENTS.forEach((d) => uploadDeptSel.appendChild(new Option(d, d)));
 
 document.getElementById("btn-open-upload").addEventListener("click", () => {
   uploadForm.reset();
@@ -194,6 +198,7 @@ document.getElementById("btn-open-upload").addEventListener("click", () => {
   progressFill.style.width = "0%";
   if (progressRole) progressRole.setAttribute("aria-valuenow", "0");
   selectedFile = null;
+  document.getElementById("up-chapters").value = "";
   Modal.open("modal-upload");
 });
 
@@ -215,21 +220,26 @@ fileInput.addEventListener("change", () => { if (fileInput.files[0]) handleFileS
 
 let selectedFile = null;
 
-function handleFileSelected(file) {
+async function handleFileSelected(file) {
   uploadErrEl.hidden = true;
+  const reject = (msg) => { showUploadError(msg); selectedFile = null; fileInfo.textContent = ""; };
   if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-    showUploadError("Only PDF files are accepted. Please select a .pdf file.");
-    selectedFile = null;
-    fileInfo.textContent = "";
-    return;
+    return reject("Only PDF files are accepted. Please select a .pdf file.");
+  }
+  if (file.size === 0) {
+    return reject("This file is empty (0 KB). Please choose a PDF that contains pages.");
   }
   const sizeMB = file.size / (1024 * 1024);
   if (sizeMB > CONFIG.MAX_FILE_SIZE_MB) {
-    showUploadError(`File is too large (${sizeMB.toFixed(1)} MB). Maximum allowed size is ${CONFIG.MAX_FILE_SIZE_MB} MB.`);
-    selectedFile = null;
-    fileInfo.textContent = "";
-    return;
+    return reject(`File is too large (${sizeMB.toFixed(1)} MB). Maximum allowed size is ${CONFIG.MAX_FILE_SIZE_MB} MB.`);
   }
+  /* A real PDF contains the marker "%PDF-" near the start. Renamed or damaged files do not. */
+  try {
+    const head = new TextDecoder("latin1").decode(await file.slice(0, 1024).arrayBuffer());
+    if (!head.includes("%PDF-")) {
+      return reject("This file has a .pdf name but is not a valid PDF (it may be renamed or damaged). Please export it again as a PDF.");
+    }
+  } catch (_) { /* if the browser cannot read the file head, accept it and continue */ }
   selectedFile = file;
   fileInfo.textContent = `${file.name}  (${sizeMB.toFixed(2)} MB)`;
 }
@@ -263,7 +273,11 @@ uploadForm.addEventListener("submit", async (e) => {
   try {
     const newDoc = await uploadDocument(
       selectedFile,
-      { title, year, semester: Number(semester), subject },
+      {
+        title, year, semester: Number(semester), subject,
+        university: uploadUniSel.value, department: uploadDeptSel.value,
+        chapterNames: document.getElementById("up-chapters").value.split(/\r?\n/).map((x) => x.trim()).filter(Boolean),
+      },
       (pct) => {
         progressFill.style.width = pct + "%";
         if (progressRole) progressRole.setAttribute("aria-valuenow", String(pct));
@@ -292,6 +306,10 @@ populateYearSelect(editYearSel, false);
 linkYearSemester(editYearSel, editSemSel, false);
 editSubjSel.innerHTML = "";
 SUBJECTS.forEach((s) => { editSubjSel.appendChild(new Option(s, s)); });
+const editUniSel = document.getElementById("edit-university");
+const editDeptSel = document.getElementById("edit-department");
+UNIVERSITIES.forEach((u) => editUniSel.appendChild(new Option(u, u)));
+DEPARTMENTS.forEach((d) => editDeptSel.appendChild(new Option(d, d)));
 
 let editingDocId = null;
 
@@ -304,6 +322,8 @@ function openEditModal(id) {
   populateSemesterSelect(editSemSel, doc.year, false);
   editSemSel.value = String(doc.semester);
   editSubjSel.value = doc.subject;
+  editUniSel.value = doc.university || UNIVERSITIES[0];
+  editDeptSel.value = doc.department || DEPARTMENTS[0];
   document.getElementById("edit-error").hidden = true;
   Modal.open("modal-edit");
 }
@@ -330,7 +350,7 @@ document.getElementById("edit-form").addEventListener("submit", async (e) => {
   const btn = document.getElementById("btn-submit-edit");
   btn.disabled = true;
   try {
-    const updated = await updateDocument(editingDocId, { title, year, semester: Number(semester), subject });
+    const updated = await updateDocument(editingDocId, { title, year, semester: Number(semester), subject, university: editUniSel.value, department: editDeptSel.value });
     const idx = allDocs.findIndex((d) => d.id === editingDocId);
     if (idx > -1) allDocs[idx] = updated;
     renderTable(); updateStats();

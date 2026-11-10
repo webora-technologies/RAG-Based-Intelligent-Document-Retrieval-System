@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Study Materials — DocRetrieval</title>
+  <meta name="description"
+    content="Ask natural-language questions about your study materials and get answers grounded in uploaded documents." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <div class="page-wrap">
+
+    <!-- Navbar -->
+    <nav class="navbar" aria-label="Main navigation">
+      <a class="navbar__brand" href="search.html">
+        <div class="navbar__logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><circle cx="11" cy="14" r="2.5"/><path d="M13 16l2 2"/></svg></div>
+        <div>
+          <div class="navbar__title">DocRetrieval</div>
+          <div class="navbar__subtitle">Computer Engineering Dept.</div>
+        </div>
+      </a>
+
+      <div class="navbar__nav" role="navigation">
+        <a href="admin.html" class="navbar__link" id="nav-documents" hidden>Documents</a>
+        <a href="search.html" class="navbar__link">Search</a>
+        <a href="study.html" class="navbar__link" aria-current="page">My Study Materials</a>
+        
+
+        <div class="navbar__user">
+          <span class="badge badge--navy" id="role-badge" aria-label="Your role">Student</span>
+          <span class="navbar__user-name" id="user-name" aria-label="Logged in as"></span>
+          <button class="btn btn--ghost btn--sm" id="btn-logout"
+            style="color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.25);">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main-content">
+      <section class="search-hero" aria-label="My Study Materials">
+        <div class="search-hero__eyebrow"><span aria-hidden="true">✦</span> YOUR COURSE LIBRARY</div>
+        <h1 class="search-hero__title">My Study Materials</h1>
+        <p class="search-hero__sub">Browse the textbooks and notes available for each subject, then ask questions about a subject, a textbook or a single chapter.</p>
+      </section>
+
+      <div class="study-wrap">
+        <div class="study-summary" id="study-summary"></div>
+
+        <div class="study-filters" role="group" aria-label="Filter study materials">
+          <select class="form-select" id="sf-university" aria-label="University"><option value="">All Universities</option></select>
+          <select class="form-select" id="sf-department" aria-label="Department"><option value="">All Departments</option></select>
+          <select class="form-select" id="sf-year" aria-label="Academic year"><option value="">All Years</option></select>
+          <select class="form-select" id="sf-sem" aria-label="Semester"><option value="">All Semesters</option></select>
+        </div>
+
+        <div class="subject-grid" id="subject-grid" aria-label="Subjects"></div>
+        <section class="book-panel" id="book-panel" hidden aria-live="polite"></section>
+      </div>
+    </main>
+
+  </div><!-- /.page-wrap -->
+
+  <script type="module" src="js/study.js"></script>
+
+</body>
+</html>
